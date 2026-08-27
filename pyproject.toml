@@ -1,0 +1,11 @@
+[project]
+name = "hashtool"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pillow>=12.3.0",
+    "pyinstaller>=6.22.2",
+]

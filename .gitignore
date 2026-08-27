@@ -1,0 +1,28 @@
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# uv / Python 虚拟环境
+.venv/
+
+# PyInstaller
+build/
+dist/
+*.spec
+
+# VS Code
+.vscode/
+
+# Windows
+Thumbs.db
+Desktop.ini
+
+# 日志
+*.log
+
+#Release 压缩包
+*.zip
+release/
+
+#意外
+编程训练.code-workspace
