@@ -61,19 +61,27 @@ def calculate_file_hash(
         十六进制格式的文件哈希值。
     """
 
-    # 创建哈希对象
+    with open(file_path, "rb") as file:
+        return calculate_stream_hash(
+            file,
+            algorithm,
+            chunk_size
+        )
+
+
+def calculate_stream_hash(
+    stream,
+    algorithm: str = "sha256",
+    chunk_size: int = FILE_CHUNK_SIZE
+) -> str:
+    """计算已打开的二进制流的哈希值。"""
+
     hash_object = hashlib.new(algorithm)
 
-    # 二进制只读方式打开文件
-    with open(file_path, "rb") as file:
-        while True:
-            chunk = file.read(chunk_size)
-
-            # 文件读取完毕
-            if not chunk:
-                break
-
-            # 将当前数据块加入哈希计算
-            hash_object.update(chunk)
+    for chunk in iter(
+        lambda: stream.read(chunk_size),
+        b""
+    ):
+        hash_object.update(chunk)
 
     return hash_object.hexdigest()
