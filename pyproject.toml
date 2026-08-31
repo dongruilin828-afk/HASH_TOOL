@@ -2,7 +2,9 @@
 name = "hashtool"
 version = "0.1.0"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "kivy>=2.3.1",
+]
 
 [dependency-groups]
 dev = [

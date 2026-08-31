@@ -10,6 +10,11 @@ build/
 dist/
 *.spec
 
+# Buildozer / Android
+.buildozer/
+bin/
+!buildozer.spec
+
 # VS Code
 .vscode/
 
