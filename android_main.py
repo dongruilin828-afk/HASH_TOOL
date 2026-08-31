@@ -2,9 +2,12 @@ import os
 
 from kivy.app import App
 from kivy.core.clipboard import Clipboard
+from kivy.core.window import Window
 from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import ListProperty, StringProperty
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
@@ -21,6 +24,9 @@ from hash_utils import calculate_hash, calculate_stream_hash
 
 
 FONT_PATH = "assets/NotoSansSC.ttf"
+
+# 设置深色背景 (Slate-950)
+Window.clearcolor = (0.043, 0.067, 0.125, 1)
 
 
 class ResultTextInput(TextInput):
@@ -55,155 +61,476 @@ KV = r"""
 
 <SpinnerOption>:
     font_name: chinese_font
-
-<SectionLabel@Label>:
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_down: ""
     size_hint_y: None
-    height: dp(36)
-    bold: True
-    halign: "left"
-    valign: "middle"
-    text_size: self.size
-
-<ActionButton@Button>:
-    size_hint_y: None
-    height: dp(52)
+    height: dp(46)
     font_size: "15sp"
+    color: (0.94, 0.96, 0.98, 1)
+    canvas.before:
+        Color:
+            rgba: (0.145, 0.514, 0.922, 1) if self.state == "down" else (0.118, 0.161, 0.231, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(6)]
+        Color:
+            rgba: (0.200, 0.255, 0.333, 1)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(6)]
+            width: dp(0.8)
+
+<ModernCard@BoxLayout>:
+    orientation: "vertical"
+    size_hint_y: None
+    height: self.minimum_height
+    padding: [dp(16), dp(14), dp(16), dp(16)]
+    spacing: dp(10)
+    canvas.before:
+        Color:
+            rgba: (0.118, 0.161, 0.231, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(12)]
+        Color:
+            rgba: (0.200, 0.255, 0.333, 0.75)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(12)]
+            width: dp(1)
+
+<CardHeader@BoxLayout>:
+    size_hint_y: None
+    height: dp(26)
+    spacing: dp(8)
+    title_text: ""
+    Widget:
+        size_hint: None, None
+        size: dp(4), dp(18)
+        pos_hint: {"center_y": 0.5}
+        canvas:
+            Color:
+                rgba: (0.231, 0.510, 0.965, 1)
+            RoundedRectangle:
+                pos: self.pos
+                size: self.size
+                radius: [dp(2)]
+    Label:
+        text: root.title_text
+        bold: True
+        font_size: "15sp"
+        color: (0.94, 0.96, 0.98, 1)
+        halign: "left"
+        valign: "middle"
+        text_size: self.size
+
+<ModernTextInput@TextInput>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_active: ""
+    foreground_color: (0.94, 0.96, 0.98, 1)
+    cursor_color: (0.376, 0.647, 0.980, 1)
+    hint_text_color: (0.450, 0.520, 0.620, 1)
+    padding: [dp(12), dp(10), dp(12), dp(10)]
+    canvas.before:
+        Color:
+            rgba: (0.059, 0.090, 0.165, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+        Color:
+            rgba: (0.231, 0.510, 0.965, 1) if self.focus else (0.200, 0.255, 0.333, 1)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+            width: dp(1.2) if self.focus else dp(1)
+
+<ResultTextInput>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_active: ""
+    foreground_color: (0.220, 0.741, 0.973, 1)
+    cursor_color: (0.376, 0.647, 0.980, 1)
+    hint_text_color: (0.450, 0.520, 0.620, 1)
+    padding: [dp(12), dp(10), dp(12), dp(10)]
+    canvas.before:
+        Color:
+            rgba: (0.043, 0.067, 0.125, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+        Color:
+            rgba: (0.200, 0.255, 0.333, 1)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+            width: dp(1)
+
+<PrimaryBtn@Button>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_down: ""
+    size_hint_y: None
+    height: dp(48)
+    font_size: "15sp"
+    bold: True
+    color: (1, 1, 1, 1)
+    canvas.before:
+        Color:
+            rgba: (0.114, 0.392, 0.745, 1) if self.state == "down" else (0.145, 0.514, 0.922, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+
+<SecondaryBtn@Button>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_down: ""
+    size_hint_y: None
+    height: dp(46)
+    font_size: "14sp"
+    color: (0.94, 0.96, 0.98, 1)
+    canvas.before:
+        Color:
+            rgba: (0.150, 0.200, 0.280, 1) if self.state == "down" else (0.200, 0.255, 0.333, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+        Color:
+            rgba: (0.280, 0.350, 0.450, 0.8)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+            width: dp(1)
+
+<SuccessBtn@Button>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_down: ""
+    size_hint_y: None
+    height: dp(48)
+    font_size: "15sp"
+    bold: True
+    color: (1, 1, 1, 1)
+    canvas.before:
+        Color:
+            rgba: (0.016, 0.471, 0.341, 1) if self.state == "down" else (0.063, 0.725, 0.506, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+
+<DangerBtn@Button>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_down: ""
+    size_hint_y: None
+    height: dp(46)
+    font_size: "14sp"
+    color: (0.98, 0.80, 0.80, 1)
+    canvas.before:
+        Color:
+            rgba: (0.350, 0.120, 0.120, 1) if self.state == "down" else (0.250, 0.140, 0.160, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+        Color:
+            rgba: (0.600, 0.200, 0.200, 0.6)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+            width: dp(1)
+
+<ModernSpinner@Spinner>:
+    font_name: chinese_font
+    background_color: (0, 0, 0, 0)
+    background_normal: ""
+    background_down: ""
+    size_hint_y: None
+    height: dp(46)
+    font_size: "15sp"
+    bold: True
+    color: (0.94, 0.96, 0.98, 1)
+    canvas.before:
+        Color:
+            rgba: (0.145, 0.204, 0.298, 1) if self.state == "down" else (0.059, 0.090, 0.165, 1)
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [dp(8)]
+        Color:
+            rgba: (0.231, 0.306, 0.408, 1)
+        Line:
+            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+            width: dp(1)
 
 ScrollView:
     do_scroll_x: False
+    bar_width: dp(4)
+    bar_color: (0.231, 0.510, 0.965, 0.5)
 
     BoxLayout:
         orientation: "vertical"
-        padding: dp(18)
-        spacing: dp(10)
+        padding: [dp(14), dp(16), dp(14), dp(24)]
+        spacing: dp(14)
         size_hint_y: None
         height: self.minimum_height
 
-        Label:
-            text: "哈希工具 v" + app.app_version
+        # =========================
+        # 头部区域
+        # =========================
+        BoxLayout:
+            orientation: "vertical"
             size_hint_y: None
-            height: dp(58)
-            font_size: "26sp"
+            height: dp(72)
+            spacing: dp(4)
 
-        Label:
-            text: "文本与文件哈希计算工具"
-            size_hint_y: None
-            height: dp(34)
-            font_size: "14sp"
+            BoxLayout:
+                size_hint_y: None
+                height: dp(38)
+                spacing: dp(10)
 
-        SectionLabel:
-            text: "文本哈希"
+                Label:
+                    text: "哈希工具"
+                    size_hint_x: None
+                    width: self.texture_size[0]
+                    font_size: "24sp"
+                    bold: True
+                    color: (0.98, 0.98, 0.99, 1)
+                    halign: "left"
+                    valign: "middle"
 
-        TextInput:
-            id: input_text
-            hint_text: "请输入需要计算哈希的文本……"
-            multiline: True
-            size_hint_y: None
-            height: dp(150)
-            font_size: "16sp"
+                Widget:
+                    size_hint_y: None
+                    height: dp(22)
+                    size_hint_x: None
+                    width: version_label.texture_size[0] + dp(16)
+                    pos_hint: {"center_y": 0.5}
+                    canvas.before:
+                        Color:
+                            rgba: (0.118, 0.161, 0.231, 1)
+                        RoundedRectangle:
+                            pos: self.pos
+                            size: self.size
+                            radius: [dp(6)]
+                        Color:
+                            rgba: (0.231, 0.510, 0.965, 0.8)
+                        Line:
+                            rounded_rectangle: [self.x, self.y, self.width, self.height, dp(6)]
+                            width: dp(0.8)
+                    Label:
+                        id: version_label
+                        text: "v" + app.app_version
+                        font_size: "12sp"
+                        bold: True
+                        color: (0.376, 0.647, 0.980, 1)
+                        center: self.parent.center
 
-        SectionLabel:
-            text: "文件哈希"
+                Widget:
+                    # 占位弹簧
 
-        Label:
-            text: app.selected_file_name
-            size_hint_y: None
-            height: dp(48)
-            halign: "left"
-            valign: "middle"
-            text_size: self.size
-            shorten: True
-            shorten_from: "center"
+            Label:
+                text: "文本与文件哈希计算工具"
+                size_hint_y: None
+                height: dp(24)
+                font_size: "13sp"
+                color: (0.58, 0.64, 0.74, 1)
+                halign: "left"
+                valign: "middle"
+                text_size: self.size
 
-        ActionButton:
-            text: "选择文件"
-            on_release: app.select_file()
+        # =========================
+        # 卡片 1: 文本哈希
+        # =========================
+        ModernCard:
+            CardHeader:
+                title_text: "文本哈希"
 
-        SectionLabel:
-            text: "哈希算法"
+            ModernTextInput:
+                id: input_text
+                hint_text: "请输入需要计算哈希的文本……"
+                multiline: True
+                size_hint_y: None
+                height: dp(140)
+                font_size: "15sp"
 
-        Spinner:
-            id: algorithm_spinner
-            text: app.default_algorithm
-            values: app.algorithm_names
-            size_hint_y: None
-            height: dp(50)
-            font_size: "16sp"
+        # =========================
+        # 卡片 2: 文件哈希
+        # =========================
+        ModernCard:
+            CardHeader:
+                title_text: "文件哈希"
 
+            BoxLayout:
+                size_hint_y: None
+                height: dp(44)
+                padding: [dp(12), dp(4)]
+                canvas.before:
+                    Color:
+                        rgba: (0.059, 0.090, 0.165, 1)
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(8)]
+                    Color:
+                        rgba: (0.200, 0.255, 0.333, 0.8)
+                    Line:
+                        rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+                        width: dp(1)
+                Label:
+                    text: "📁 " + app.selected_file_name
+                    color: (0.85, 0.90, 0.95, 1) if app.selected_file_name != "尚未选择文件" else (0.450, 0.520, 0.620, 1)
+                    font_size: "14sp"
+                    halign: "left"
+                    valign: "middle"
+                    text_size: self.size
+                    shorten: True
+                    shorten_from: "center"
+
+            SecondaryBtn:
+                text: "浏览选择文件"
+                on_release: app.select_file()
+
+        # =========================
+        # 卡片 3: 哈希算法与计算
+        # =========================
+        ModernCard:
+            CardHeader:
+                title_text: "哈希算法"
+
+            ModernSpinner:
+                id: algorithm_spinner
+                text: app.default_algorithm
+                values: app.algorithm_names
+
+            BoxLayout:
+                size_hint_y: None
+                height: dp(48)
+                spacing: dp(10)
+
+                PrimaryBtn:
+                    text: "计算文本哈希"
+                    on_release: app.generate_text_hash()
+
+                PrimaryBtn:
+                    text: "计算文件哈希"
+                    on_release: app.generate_file_hash()
+
+        # =========================
+        # 卡片 4: 计算结果
+        # =========================
+        ModernCard:
+            CardHeader:
+                title_text: app.output_caption
+
+            ResultTextInput:
+                id: output_text
+                readonly: True
+                use_handles: True
+                use_bubble: True
+                unfocus_on_touch: True
+                multiline: True
+                size_hint_y: None
+                height: dp(130)
+                font_size: "14sp"
+
+            BoxLayout:
+                size_hint_y: None
+                height: dp(46)
+                spacing: dp(10)
+
+                PrimaryBtn:
+                    text: "复制结果"
+                    height: dp(46)
+                    on_release: app.copy_result()
+
+                DangerBtn:
+                    text: "清空"
+                    on_release: app.clear_all()
+
+        # =========================
+        # 卡片 5: 文件完整性校验
+        # =========================
+        ModernCard:
+            CardHeader:
+                title_text: "文件完整性校验"
+
+            ModernTextInput:
+                id: expected_hash_input
+                hint_text: "请输入官方或预期哈希值……"
+                multiline: False
+                size_hint_y: None
+                height: dp(48)
+                font_size: "14sp"
+
+            SuccessBtn:
+                text: "开始校验文件"
+                on_release: app.verify_file_hash()
+
+            BoxLayout:
+                size_hint_y: None
+                height: dp(46)
+                padding: [dp(12), dp(4)]
+                canvas.before:
+                    Color:
+                        rgba: (0.024, 0.235, 0.145, 0.9) if "✓" in app.verification_text else ((0.35, 0.08, 0.08, 0.9) if "✗" in app.verification_text else (0.059, 0.090, 0.165, 0.9))
+                    RoundedRectangle:
+                        pos: self.pos
+                        size: self.size
+                        radius: [dp(8)]
+                    Color:
+                        rgba: (0.063, 0.725, 0.506, 0.8) if "✓" in app.verification_text else ((0.937, 0.267, 0.267, 0.8) if "✗" in app.verification_text else (0.200, 0.255, 0.333, 0.8))
+                    Line:
+                        rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+                        width: dp(1)
+                Label:
+                    text: app.verification_text
+                    bold: True
+                    font_size: "14sp"
+                    color: (0.204, 0.827, 0.604, 1) if "✓" in app.verification_text else ((0.973, 0.443, 0.443, 1) if "✗" in app.verification_text else (0.580, 0.639, 0.722, 1))
+                    halign: "center"
+                    valign: "middle"
+                    text_size: self.size
+
+        # =========================
+        # 底部状态与关于
+        # =========================
         BoxLayout:
             size_hint_y: None
-            height: dp(52)
-            spacing: dp(10)
+            height: max(dp(54), status_label.texture_size[1] + dp(16))
+            padding: [dp(14), dp(8)]
+            canvas.before:
+                Color:
+                    rgba: (0.059, 0.090, 0.165, 0.7)
+                RoundedRectangle:
+                    pos: self.pos
+                    size: self.size
+                    radius: [dp(8)]
+                Color:
+                    rgba: (0.200, 0.255, 0.333, 0.5)
+                Line:
+                    rounded_rectangle: [self.x, self.y, self.width, self.height, dp(8)]
+                    width: dp(0.8)
+            Label:
+                id: status_label
+                text: app.status_text
+                color: (0.58, 0.64, 0.74, 1)
+                halign: "left"
+                valign: "middle"
+                text_size: self.width, None
+                font_size: "13sp"
 
-            ActionButton:
-                text: "计算文本哈希"
-                on_release: app.generate_text_hash()
-
-            ActionButton:
-                text: "计算文件哈希"
-                on_release: app.generate_file_hash()
-
-        SectionLabel:
-            text: app.output_caption
-
-        ResultTextInput:
-            id: output_text
-            readonly: True
-            use_handles: True
-            use_bubble: True
-            unfocus_on_touch: True
-            multiline: True
-            size_hint_y: None
-            height: dp(135)
-            font_size: "15sp"
-
-        BoxLayout:
-            size_hint_y: None
-            height: dp(52)
-            spacing: dp(10)
-
-            ActionButton:
-                text: "复制结果"
-                on_release: app.copy_result()
-
-            ActionButton:
-                text: "清空"
-                on_release: app.clear_all()
-
-        SectionLabel:
-            text: "文件完整性校验"
-
-        TextInput:
-            id: expected_hash_input
-            hint_text: "请输入预期哈希值"
-            multiline: False
-            size_hint_y: None
-            height: dp(50)
-            font_size: "15sp"
-
-        ActionButton:
-            text: "校验文件"
-            on_release: app.verify_file_hash()
-
-        Label:
-            text: app.verification_text
-            size_hint_y: None
+        SecondaryBtn:
+            text: "关于哈希工具"
             height: dp(44)
-            halign: "center"
-            valign: "middle"
-            text_size: self.size
-
-        Label:
-            text: app.status_text
-            size_hint_y: None
-            height: max(dp(52), self.texture_size[1] + dp(12))
-            halign: "left"
-            valign: "middle"
-            text_size: self.width, None
-            font_size: "13sp"
-
-        ActionButton:
-            text: "关于"
             on_release: app.show_about()
 """
 
@@ -513,18 +840,45 @@ class HashToolAndroidApp(App):
 
     @staticmethod
     def show_message(title, message):
-        Popup(
+        content_box = BoxLayout(
+            orientation="vertical",
+            spacing=dp(12),
+            padding=[dp(12), dp(10), dp(12), dp(6)],
+        )
+        msg_label = Label(
+            text=message,
+            font_name=FONT_PATH,
+            halign="center",
+            valign="middle",
+            text_size=(dp(270), None),
+            font_size="14sp",
+            color=(0.92, 0.94, 0.97, 1),
+        )
+        content_box.add_widget(msg_label)
+
+        close_btn = Button(
+            text="确定",
+            font_name=FONT_PATH,
+            size_hint_y=None,
+            height=dp(42),
+            font_size="14sp",
+            bold=True,
+            color=(1, 1, 1, 1),
+            background_color=(0.145, 0.514, 0.922, 1),
+        )
+        popup = Popup(
             title=title,
             title_font=FONT_PATH,
-            content=Label(
-                text=message,
-                halign="center",
-                valign="middle",
-                text_size=(dp(280), None),
-            ),
-            size_hint=(0.9, None),
-            height=dp(260),
-        ).open()
+            title_size="16sp",
+            title_align="center",
+            content=content_box,
+            size_hint=(0.88, None),
+            height=dp(250),
+            separator_color=(0.231, 0.510, 0.965, 0.8),
+        )
+        close_btn.bind(on_release=popup.dismiss)
+        content_box.add_widget(close_btn)
+        popup.open()
 
 
 if __name__ == "__main__":

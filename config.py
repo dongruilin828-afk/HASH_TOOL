@@ -4,7 +4,7 @@
 
 APP_NAME = "Hash Tool"
 
-APP_VERSION = "0.6.0"
+APP_VERSION = "0.7.0"
 
 APP_DESCRIPTION = "文本与文件哈希计算工具"
 
