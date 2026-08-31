@@ -19,6 +19,19 @@ def main():
         if hasattr(widget, "font_name")
     ]
     assert font_widgets
+    assert app.output_text.use_handles is True
+    assert app.output_text.use_bubble is True
+    assert app.output_text.unfocus_on_touch is True
+    app.output_text.text = "abcdef"
+    app.output_text.focus = True
+    app.output_text.select_all()
+    assert app.output_text.selection_text == "abcdef"
+    touch = type("Touch", (), {"pos": app.output_text.center})()
+    assert app.output_text.on_touch_down(touch) is True
+    assert app.output_text.selection_text == ""
+    app.output_text.select_all()
+    assert app.output_text.selection_text == "abcdef"
+    app.output_text.focus = False
     assert all(
         str(widget.font_name).replace("\\", "/").endswith(
             "assets/NotoSansSC.ttf"
@@ -65,6 +78,7 @@ def main():
 
     app.clear_all()
     assert app.input_text.text == ""
+    assert app.input_text.focus is False
     assert app.output_text.text == ""
     assert app.expected_hash_input.text == ""
     assert app.verification_text == "校验结果：尚未校验"

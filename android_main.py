@@ -7,6 +7,7 @@ from kivy.metrics import dp
 from kivy.properties import ListProperty, StringProperty
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.textinput import TextInput
 from kivy.utils import platform
 
 from config import (
@@ -20,6 +21,20 @@ from hash_utils import calculate_hash, calculate_stream_hash
 
 
 FONT_PATH = "assets/NotoSansSC.ttf"
+
+
+class ResultTextInput(TextInput):
+    def on_touch_down(self, touch):
+        handles = (self._handle_left, self._handle_right, self._handle_middle)
+        if self.collide_point(*touch.pos) and (
+            self.selection_text
+            or any(handle and handle.parent for handle in handles)
+        ):
+            self.cancel_selection()
+            self._hide_cut_copy_paste()
+            self._hide_handles()
+            return True
+        return super().on_touch_down(touch)
 
 
 KV = r"""
@@ -131,9 +146,12 @@ ScrollView:
         SectionLabel:
             text: app.output_caption
 
-        TextInput:
+        ResultTextInput:
             id: output_text
             readonly: True
+            use_handles: True
+            use_bubble: True
+            unfocus_on_touch: True
             multiline: True
             size_hint_y: None
             height: dp(135)
@@ -461,7 +479,7 @@ class HashToolAndroidApp(App):
         self.expected_hash_input.text = ""
         self.output_caption = f"{DEFAULT_ALGORITHM} 哈希值"
         self.verification_text = "校验结果：尚未校验"
-        self.input_text.focus = True
+        self.input_text.focus = False
         self.update_status()
 
     def update_status(self, *_):
