@@ -12,7 +12,6 @@ from kivy.utils import platform
 from config import (
     ALGORITHM_MAP,
     APP_AUTHOR,
-    APP_NAME,
     APP_VERSION,
     DEFAULT_ALGORITHM,
     HASH_LENGTHS,
@@ -20,8 +19,27 @@ from config import (
 from hash_utils import calculate_hash, calculate_stream_hash
 
 
+FONT_PATH = "assets/NotoSansSC.ttf"
+
+
 KV = r"""
 #:import dp kivy.metrics.dp
+#:set chinese_font "assets/NotoSansSC.ttf"
+
+<Label>:
+    font_name: chinese_font
+
+<Button>:
+    font_name: chinese_font
+
+<TextInput>:
+    font_name: chinese_font
+
+<Spinner>:
+    font_name: chinese_font
+
+<SpinnerOption>:
+    font_name: chinese_font
 
 <SectionLabel@Label>:
     size_hint_y: None
@@ -47,30 +65,30 @@ ScrollView:
         height: self.minimum_height
 
         Label:
-            text: app.app_name + " v" + app.app_version
+            text: "哈希工具 v" + app.app_version
             size_hint_y: None
             height: dp(58)
             font_size: "26sp"
 
         Label:
-            text: "Text and file hash calculator"
+            text: "文本与文件哈希计算工具"
             size_hint_y: None
             height: dp(34)
             font_size: "14sp"
 
         SectionLabel:
-            text: "Text hash"
+            text: "文本哈希"
 
         TextInput:
             id: input_text
-            hint_text: "Enter text..."
+            hint_text: "请输入需要计算哈希的文本……"
             multiline: True
             size_hint_y: None
             height: dp(150)
             font_size: "16sp"
 
         SectionLabel:
-            text: "File hash"
+            text: "文件哈希"
 
         Label:
             text: app.selected_file_name
@@ -83,11 +101,11 @@ ScrollView:
             shorten_from: "center"
 
         ActionButton:
-            text: "Select file"
+            text: "选择文件"
             on_release: app.select_file()
 
         SectionLabel:
-            text: "Hash algorithm"
+            text: "哈希算法"
 
         Spinner:
             id: algorithm_spinner
@@ -103,11 +121,11 @@ ScrollView:
             spacing: dp(10)
 
             ActionButton:
-                text: "Calculate text"
+                text: "计算文本哈希"
                 on_release: app.generate_text_hash()
 
             ActionButton:
-                text: "Calculate file"
+                text: "计算文件哈希"
                 on_release: app.generate_file_hash()
 
         SectionLabel:
@@ -127,26 +145,26 @@ ScrollView:
             spacing: dp(10)
 
             ActionButton:
-                text: "Copy result"
+                text: "复制结果"
                 on_release: app.copy_result()
 
             ActionButton:
-                text: "Clear"
+                text: "清空"
                 on_release: app.clear_all()
 
         SectionLabel:
-            text: "File integrity verification"
+            text: "文件完整性校验"
 
         TextInput:
             id: expected_hash_input
-            hint_text: "Expected hash"
+            hint_text: "请输入预期哈希值"
             multiline: False
             size_hint_y: None
             height: dp(50)
             font_size: "15sp"
 
         ActionButton:
-            text: "Verify file"
+            text: "校验文件"
             on_release: app.verify_file_hash()
 
         Label:
@@ -167,7 +185,7 @@ ScrollView:
             font_size: "13sp"
 
         ActionButton:
-            text: "About"
+            text: "关于"
             on_release: app.show_about()
 """
 
@@ -175,17 +193,16 @@ ScrollView:
 class HashToolAndroidApp(App):
     FILE_PICKER_REQUEST = 5001
 
-    app_name = StringProperty(APP_NAME)
     app_version = StringProperty(APP_VERSION)
     default_algorithm = StringProperty(DEFAULT_ALGORITHM)
     algorithm_names = ListProperty(list(ALGORITHM_MAP))
-    selected_file_name = StringProperty("No file selected")
-    output_caption = StringProperty(f"{DEFAULT_ALGORITHM} digest")
-    verification_text = StringProperty("Verification: not checked")
+    selected_file_name = StringProperty("尚未选择文件")
+    output_caption = StringProperty(f"{DEFAULT_ALGORITHM} 哈希值")
+    verification_text = StringProperty("校验结果：尚未校验")
     status_text = StringProperty("")
 
     def build(self):
-        self.title = f"{APP_NAME} {APP_VERSION}"
+        self.title = f"哈希工具 {APP_VERSION}"
         self._selected_file_uri = None
         self._picker_bound = False
 
@@ -210,14 +227,14 @@ class HashToolAndroidApp(App):
         name, algorithm = self.selected_algorithm()
         self.show_hash_result(
             calculate_hash(self.input_text.text, algorithm),
-            f"{name} text digest",
+            f"{name} 文本哈希值",
         )
 
     def select_file(self, *_):
         if platform != "android":
             self.show_message(
-                "Android only",
-                "The system file picker is available in the APK.",
+                "仅限 Android",
+                "系统文件选择器仅在 Android 安装包中可用。",
             )
             return
 
@@ -250,7 +267,7 @@ class HashToolAndroidApp(App):
             )
         except Exception as error:
             self.unbind_file_picker()
-            self.show_message("File picker failed", str(error))
+            self.show_message("文件选择失败", str(error))
 
     def on_activity_result(
         self,
@@ -294,7 +311,7 @@ class HashToolAndroidApp(App):
             resolver,
             uri,
         )
-        self.verification_text = "Verification: not checked"
+        self.verification_text = "校验结果：尚未校验"
 
     def unbind_file_picker(self):
         if not self._picker_bound:
@@ -327,7 +344,7 @@ class HashToolAndroidApp(App):
 
     def open_selected_file(self):
         if platform != "android":
-            raise OSError("Android content URI is unavailable")
+            raise OSError("当前环境无法读取 Android 文件 URI")
 
         from jnius import autoclass
 
@@ -343,7 +360,7 @@ class HashToolAndroidApp(App):
                 "r",
             )
             if descriptor is None:
-                raise OSError("The selected file cannot be opened")
+                raise OSError("无法打开所选文件")
             return os.fdopen(descriptor.detachFd(), "rb")
         except OSError:
             raise
@@ -362,11 +379,11 @@ class HashToolAndroidApp(App):
         try:
             result = self.calculate_selected_file_hash()
         except OSError as error:
-            self.show_message("File read failed", str(error))
+            self.show_message("文件读取失败", str(error))
             return
 
         name, _ = self.selected_algorithm()
-        self.show_hash_result(result, f"{name} file digest")
+        self.show_hash_result(result, f"{name} 文件哈希值")
 
     def verify_file_hash(self, *_):
         if not self.require_selected_file():
@@ -377,17 +394,17 @@ class HashToolAndroidApp(App):
 
         if not expected:
             self.show_message(
-                "Expected hash required",
-                "Enter the expected hash before verification.",
+                "缺少预期哈希值",
+                "请先输入官方或预期哈希值。",
             )
             return
 
         required_length = HASH_LENGTHS[name]
         if len(expected) != required_length:
             self.show_message(
-                "Incorrect hash length",
-                f"{name} requires {required_length} hexadecimal characters; "
-                f"received {len(expected)}.",
+                "哈希长度不正确",
+                f"{name} 的十六进制哈希值应包含 {required_length} 个字符；"
+                f"当前输入 {len(expected)} 个字符。",
             )
             return
 
@@ -395,22 +412,22 @@ class HashToolAndroidApp(App):
             int(expected, 16)
         except ValueError:
             self.show_message(
-                "Incorrect hash format",
-                "A hash may contain only hexadecimal characters 0-9 and A-F.",
+                "哈希格式不正确",
+                "哈希值只能包含十六进制字符 0-9 和 A-F。",
             )
             return
 
         try:
             actual = self.calculate_selected_file_hash()
         except OSError as error:
-            self.show_message("File read failed", str(error))
+            self.show_message("文件读取失败", str(error))
             return
 
-        self.show_hash_result(actual, f"{name} file digest")
+        self.show_hash_result(actual, f"{name} 文件哈希值")
         self.verification_text = (
-            "Verification passed: hashes match"
+            "✓ 校验通过：哈希值一致"
             if actual.lower() == expected.lower()
-            else "Verification failed: hashes differ"
+            else "✗ 校验失败：哈希值不一致"
         )
 
     def require_selected_file(self):
@@ -418,8 +435,8 @@ class HashToolAndroidApp(App):
             return True
 
         self.show_message(
-            "No file selected",
-            "Select a file before calculating or verifying its hash.",
+            "尚未选择文件",
+            "请先选择需要计算或校验哈希值的文件。",
         )
         return False
 
@@ -431,8 +448,8 @@ class HashToolAndroidApp(App):
     def copy_result(self, *_):
         if not self.output_text.text:
             self.show_message(
-                "Nothing to copy",
-                "Calculate a hash first.",
+                "没有可复制的内容",
+                "请先计算一个哈希值。",
             )
             return
         Clipboard.copy(self.output_text.text)
@@ -442,8 +459,8 @@ class HashToolAndroidApp(App):
         self.output_text.text = ""
         self.algorithm_spinner.text = DEFAULT_ALGORITHM
         self.expected_hash_input.text = ""
-        self.output_caption = f"{DEFAULT_ALGORITHM} digest"
-        self.verification_text = "Verification: not checked"
+        self.output_caption = f"{DEFAULT_ALGORITHM} 哈希值"
+        self.verification_text = "校验结果：尚未校验"
         self.input_text.focus = True
         self.update_status()
 
@@ -453,33 +470,34 @@ class HashToolAndroidApp(App):
 
         text = self.input_text.text
         self.status_text = (
-            f"Input: {len(text)} characters / "
-            f"{len(text.encode('utf-8'))} bytes\n"
-            f"Algorithm: {self.algorithm_spinner.text} | "
-            f"Output: {len(self.output_text.text)} characters"
+            f"输入：{len(text)} 字符 / "
+            f"{len(text.encode('utf-8'))} 字节\n"
+            f"算法：{self.algorithm_spinner.text} | "
+            f"输出：{len(self.output_text.text)} 字符"
         )
 
     def on_algorithm_changed(self, *_):
-        self.verification_text = "Verification: not checked"
+        self.verification_text = "校验结果：尚未校验"
         self.update_status()
 
     def on_expected_hash_changed(self, *_):
-        self.verification_text = "Verification: not checked"
+        self.verification_text = "校验结果：尚未校验"
 
     def show_about(self, *_):
         self.show_message(
-            f"About {APP_NAME}",
-            f"{APP_NAME}\n\n"
-            f"Version: {APP_VERSION}\n\n"
-            "Text and file hash calculator\n\n"
-            f"Author: {APP_AUTHOR}\n\n"
-            "Algorithms: MD5, SHA-1, SHA-256, SHA-512",
+            "关于哈希工具",
+            "哈希工具\n\n"
+            f"版本：{APP_VERSION}\n\n"
+            "文本与文件哈希计算工具\n\n"
+            f"作者：{APP_AUTHOR}\n\n"
+            "支持算法：MD5、SHA-1、SHA-256、SHA-512",
         )
 
     @staticmethod
     def show_message(title, message):
         Popup(
             title=title,
+            title_font=FONT_PATH,
             content=Label(
                 text=message,
                 halign="center",

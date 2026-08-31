@@ -1,4 +1,4 @@
-__version__ = "0.5.0"
+__version__ = "0.5.5"
 
 from android_main import HashToolAndroidApp
 
