@@ -70,6 +70,14 @@ def main():
     app.verify_file_hash()
     assert messages[-1][0] == "哈希格式不正确"
 
+    about = []
+    app.show_message = lambda title, message, popup_height=250: about.append(
+        (title, message, popup_height)
+    )
+    app.show_about()
+    assert about[-1][0] == "关于哈希工具"
+    assert about[-1][2] == 330
+
     for name, algorithm in ALGORITHM_MAP.items():
         app.algorithm_spinner.text = name
         app.generate_text_hash()

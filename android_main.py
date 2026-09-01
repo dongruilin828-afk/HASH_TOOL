@@ -836,10 +836,11 @@ class HashToolAndroidApp(App):
             "文本与文件哈希计算工具\n\n"
             f"作者：{APP_AUTHOR}\n\n"
             "支持算法：MD5、SHA-1、SHA-256、SHA-512",
+            popup_height=330,
         )
 
     @staticmethod
-    def show_message(title, message):
+    def show_message(title, message, popup_height=250):
         content_box = BoxLayout(
             orientation="vertical",
             spacing=dp(12),
@@ -873,7 +874,7 @@ class HashToolAndroidApp(App):
             title_align="center",
             content=content_box,
             size_hint=(0.88, None),
-            height=dp(250),
+            height=dp(popup_height),
             separator_color=(0.231, 0.510, 0.965, 0.8),
         )
         close_btn.bind(on_release=popup.dismiss)
