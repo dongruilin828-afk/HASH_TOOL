@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox
 
@@ -16,6 +17,7 @@ from config import (
 from hash_utils import (
     calculate_hash,
     calculate_file_hash,
+    normalize_hex_hash,
 )
 
 
@@ -68,6 +70,9 @@ class HashToolApp:
         )
 
         self.status_var = tk.StringVar()
+
+        # 文件哈希是否在后台计算中
+        self._file_hash_busy = False
 
         # =========================
         # 配置整体样式
@@ -855,6 +860,94 @@ class HashToolApp:
     # 文件哈希
     # =====================================================
 
+    def _set_file_hash_controls(self, enabled: bool):
+        """启用或禁用与文件哈希相关的按钮。"""
+        state = "normal" if enabled else "disabled"
+        for button in (
+            self.select_file_button,
+            self.generate_file_button,
+            self.verify_button,
+        ):
+            button.config(state=state)
+
+    def _run_file_hash_in_background(
+        self,
+        file_path: str,
+        algorithm: str,
+        selected_algorithm: str,
+        on_success,
+    ):
+        """
+        在后台线程计算文件哈希，
+        避免大文件卡住界面。
+        """
+        if self._file_hash_busy:
+            messagebox.showinfo(
+                "正在计算",
+                "当前已有文件哈希在计算中，请稍候。"
+            )
+            return
+
+        self._file_hash_busy = True
+        self._set_file_hash_controls(False)
+        self.status_var.set(
+            f"正在计算 {selected_algorithm} 文件哈希，请稍候…"
+        )
+
+        def worker():
+            result = None
+            error = None
+            try:
+                result = calculate_file_hash(
+                    file_path,
+                    algorithm
+                )
+            except Exception as exc:
+                error = exc
+
+            def finish():
+                self._file_hash_busy = False
+                self._set_file_hash_controls(True)
+
+                if error is None:
+                    on_success(result)
+                    self.update_status()
+                    return
+
+                if isinstance(error, FileNotFoundError):
+                    messagebox.showerror(
+                        "文件不存在",
+                        "找不到该文件。\n\n"
+                        "文件可能已经被移动、"
+                        "重命名或删除。"
+                    )
+                elif isinstance(error, PermissionError):
+                    messagebox.showerror(
+                        "无法读取文件",
+                        "没有权限读取该文件。"
+                    )
+                elif isinstance(error, OSError):
+                    messagebox.showerror(
+                        "文件读取失败",
+                        f"读取文件时发生错误："
+                        f"\n\n{error}"
+                    )
+                else:
+                    messagebox.showerror(
+                        "计算失败",
+                        f"计算文件哈希时发生错误："
+                        f"\n\n{error}"
+                    )
+
+                self.update_status()
+
+            self.root.after(0, finish)
+
+        threading.Thread(
+            target=worker,
+            daemon=True
+        ).start()
+
     def generate_file_hash(self):
         file_path = (
             self.selected_file_path.get()
@@ -875,40 +968,18 @@ class HashToolApp:
             selected_algorithm
         ]
 
-        try:
-            result = calculate_file_hash(
-                file_path,
-                algorithm
+        def on_success(result: str):
+            self.show_hash_result(
+                result,
+                f"{selected_algorithm} "
+                "文件哈希值："
             )
 
-        except FileNotFoundError:
-            messagebox.showerror(
-                "文件不存在",
-                "找不到该文件。\n\n"
-                "文件可能已经被移动、"
-                "重命名或删除。"
-            )
-            return
-
-        except PermissionError:
-            messagebox.showerror(
-                "无法读取文件",
-                "没有权限读取该文件。"
-            )
-            return
-
-        except OSError as error:
-            messagebox.showerror(
-                "文件读取失败",
-                f"读取文件时发生错误："
-                f"\n\n{error}"
-            )
-            return
-
-        self.show_hash_result(
-            result,
-            f"{selected_algorithm} "
-            "文件哈希值："
+        self._run_file_hash_in_background(
+            file_path,
+            algorithm,
+            selected_algorithm,
+            on_success,
         )
 
     # =====================================================
@@ -927,10 +998,8 @@ class HashToolApp:
             )
             return
 
-        expected_hash = (
-            self.expected_hash_var
-            .get()
-            .strip()
+        expected_hash = normalize_hex_hash(
+            self.expected_hash_var.get()
         )
 
         if not expected_hash:
@@ -978,56 +1047,31 @@ class HashToolApp:
             selected_algorithm
         ]
 
-        try:
-            actual_hash = (
-                calculate_file_hash(
-                    file_path,
-                    algorithm
+        def on_success(actual_hash: str):
+            self.show_hash_result(
+                actual_hash,
+                f"{selected_algorithm} "
+                "文件哈希值："
+            )
+
+            if (
+                actual_hash.lower()
+                == expected_hash.lower()
+            ):
+                self.verify_result_var.set(
+                    "✓ 校验通过：哈希值一致"
                 )
-            )
+            else:
+                self.verify_result_var.set(
+                    "✗ 校验失败：哈希值不一致"
+                )
 
-        except FileNotFoundError:
-            messagebox.showerror(
-                "文件不存在",
-                "找不到该文件。\n\n"
-                "文件可能已经被移动、"
-                "重命名或删除。"
-            )
-            return
-
-        except PermissionError:
-            messagebox.showerror(
-                "无法读取文件",
-                "没有权限读取该文件。"
-            )
-            return
-
-        except OSError as error:
-            messagebox.showerror(
-                "文件读取失败",
-                f"读取文件时发生错误："
-                f"\n\n{error}"
-            )
-            return
-
-        self.show_hash_result(
-            actual_hash,
-            f"{selected_algorithm} "
-            "文件哈希值："
+        self._run_file_hash_in_background(
+            file_path,
+            algorithm,
+            selected_algorithm,
+            on_success,
         )
-
-        if (
-            actual_hash.lower()
-            == expected_hash.lower()
-        ):
-            self.verify_result_var.set(
-                "✓ 校验通过：哈希值一致"
-            )
-
-        else:
-            self.verify_result_var.set(
-                "✗ 校验失败：哈希值不一致"
-            )
 
     # =====================================================
     # 统一显示结果
@@ -1221,7 +1265,9 @@ def resource_path(relative_path: str) -> str:
     if hasattr(sys, "_MEIPASS"):
         base_path = sys._MEIPASS
     else:
-        base_path = os.path.abspath(".")
+        base_path = os.path.dirname(
+            os.path.abspath(__file__)
+        )
 
     return os.path.join(
         base_path,
