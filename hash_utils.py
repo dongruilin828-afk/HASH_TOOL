@@ -1,6 +1,15 @@
 import hashlib
+import re
 
 from config import FILE_CHUNK_SIZE
+
+
+def normalize_hex_hash(value: str) -> str:
+    """
+    去掉粘贴哈希里的空白、冒号等分隔符，
+    只保留十六进制字符。
+    """
+    return re.sub(r"[^0-9A-Fa-f]", "", value.strip())
 
 
 def calculate_hash(
